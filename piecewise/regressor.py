@@ -10,6 +10,7 @@ import numpy as np
 
 
 def piecewise(t, v, min_stop_frac=0.03):
+    print('piecewise(', 't:', t, 'v:', v, 'min_stop_frac:', min_stop_frac, ')')
     """ Fits a piecewise (aka "segmented") regression.
     Params:
         t (listlike of ints or floats): independent/predictor variable values
@@ -62,25 +63,75 @@ def piecewise(t, v, min_stop_frac=0.03):
         # Execute the next merge.
         # Update segments, replacing the two old ones with the one new one.
         seg_tracker.apply_merge(next_merge)
-        
+
         # Add new potential merges.
         neighbors = seg_tracker.get_neighbors(next_merge.new_seg)
         for neighbor in neighbors:
             left_seg, right_seg = sorted([next_merge.new_seg, neighbor])
+            print('making merge', t)
             heapq.heappush(merges, _make_merge(t, v, left_seg, right_seg))
 
     if biggest_cost_increase < min_stop_frac*cum_cost:
         # This path is needed for the case where there is only one segment, because
         # merges_since_best isn't updated after merging in the loop above.
         merges_since_best = []
-    
+
     for merge in reversed(merges_since_best):
         seg_tracker.unapply_merge(merge)
 
+
+    '''
+    fitted_segments = [
+        FittedSegment(t[seg.start_index], t[seg.end_index - 1], seg.coeffs)
+        for seg in seg_tracker.segments
+    ]
+
+
+    fitted_segments = []
+    segments = seg_tracker.segments
+    for i, seg in enumerate(segments):
+        # For the first segment, the start is just its own start.
+        if i == 0:
+            display_start = t[seg.start_index]
+        else:
+            # For subsequent segments, force the start to be the same as the previous segment's end
+            # (which we already computed and stored).
+            display_start = fitted_segments[-1].end_t
+
+        # For interior segments, use the next segment's start as the end boundary.
+        if i < len(segments) - 1:
+            display_end = t[segments[i+1].start_index]
+        else:
+            # For the last segment, use the last point that was actually used in the segment.
+            display_end = t[seg.end_index - 1]
+
+        fitted_segments.append(FittedSegment(display_start, display_end, seg.coeffs))
+
+
+    '''
     fitted_segments = [
         FittedSegment(t[seg.start_index], t[min(seg.end_index, len(t)-1)], seg.coeffs)
         for seg in seg_tracker.segments
     ]
+    '''
+
+    # This just fiddles with the segments after they're already merged.
+    fitted_segments = []
+    prev_end = None
+    segments = seg_tracker.segments
+    for i, seg in enumerate(segments):
+        # For the first segment, use its actual start.
+        # For subsequent segments, override the start with the previous segment's end.
+        start_t = t[seg.start_index] if i == 0 else prev_end
+        # Use the last point in the segment as its end.
+        end_t = t[seg.end_index - 1] if seg.end_index > seg.start_index else t[seg.start_index]
+        fitted_segments.append(FittedSegment(start_t, end_t, seg.coeffs))
+        prev_end = end_t
+    '''
+
+    print('fitted_segments length: ', len(fitted_segments))
+    print('fitted_segments: ', fitted_segments)
+
     return FittedModel(fitted_segments)
 
 
@@ -193,14 +244,14 @@ class SegmentTracker(object):
         # segment at start_index has not been merged away and is still the same
         return self._valid[segment.start_index] \
             and self._segments[segment.start_index] is segment
-    
+
     def get_prev(self, segment):
         """ Returns the left neighbor of segment; None if it is the first. """
         if segment.start_index > 0:
             return self._segments[self._prev[segment.start_index]]
         else:
             return None
-    
+
     def get_next(self, segment):
         """ Returns the right neighbor of segment; None if it is the last. """
         if segment.end_index < len(self._segments):
@@ -228,7 +279,7 @@ class SegmentTracker(object):
             self._prev[_next.start_index] = new_seg.start_index
         self._segments[new_seg.start_index] = new_seg
         self._len -= 1
-    
+
     def unapply_merge(self, merge):
         """ Remove a segment and reinsert the two segments
         from which it was created.
@@ -292,7 +343,7 @@ def _get_initial_segments_and_merges(t, v):
     def _build_segments(ranges):
         # number of point in range
         n = np.diff(ranges, axis=1).reshape(-1)
-        
+
         # expand ranges in rows, using masked arrays to deal with uneven lengths.
         # indices like these:
         #   [[0, 1], [1, 4], [4, 6]]
@@ -306,10 +357,10 @@ def _get_initial_segments_and_merges(t, v):
         indices = np.ma.array(ranges[:,:1] + np.arange(max_n).reshape(1, -1))
         for i in range(1, max_n):
             indices[n == i, i:] = np.ma.masked
-        
+
         segment_t = np.ma.take(t, indices)
         segment_v = np.ma.take(v, indices)
-    
+
         # sum(t), sum(v), unmasked
         st = np.ma.getdata(np.ma.sum(segment_t, axis=1))
         sv = np.ma.getdata(np.ma.sum(segment_v, axis=1))
@@ -326,7 +377,7 @@ def _get_initial_segments_and_merges(t, v):
         ct = np.ma.getdata(np.ma.sum(dt ** 2, axis=1))
         cv = np.ma.getdata(np.ma.sum(dv ** 2, axis=1))
         ctv = np.ma.getdata(np.ma.sum(dt * dv, axis=1))
-        
+
         # slope and intercept
         # for single point segments (ct == 0), assume slope = 0, intercept = mean(v)
         nonzero_ct = ct > 0
@@ -354,14 +405,14 @@ def _get_initial_segments_and_merges(t, v):
             )
             for i, cov_data in enumerate(np.c_[n, st, sv, ct, cv, ctv])
         ]
-    
+
     # If there are multiple values at the same t, average them and treat them
     # like a single point during initialization. This ensures that all the
     # points with the same t are assigned to the same linear segment.
     unique_t = np.unique(t, return_index=True)[1]
     even_n = len(unique_t) % 2 == 0
     index_ranges = np.c_[unique_t, np.r_[unique_t[1:], len(t)]]
-    
+
     # unique t is pretty common, optimize for that
     averages = v[index_ranges[:,0]]
     long_ranges = np.diff(index_ranges, axis=1).reshape(-1) > 1
@@ -394,7 +445,7 @@ def _get_initial_segments_and_merges(t, v):
     # merge every consecutive segment
     merge_ranges = np.c_[segment_ranges[:-1,0], segment_ranges[1:,1]]
     merge_segments = _build_segments(merge_ranges)
-    
+
     merges = [
         Merge(
             new_seg.error - segments[i].error - segments[i + 1].error,
@@ -462,16 +513,22 @@ def _fit_line(t, v, start_index, end_index, cov_data):
     """ Fits and OLS regression for the set of t and v values in the given index
     range. Returns (coefficients of line, sum of squared error).
     """
-
+    # print('t: ', t)
+    # print('v: ', v)
+    # print('start_index:', start_index)
+    # print('end_index: ', end_index)
+    # print('cov_data:', cov_data)
     # based on scipy.stats.linregress
     mu_t, mu_v = cov_data[1:3] / cov_data[0]
     ct, cv, ctv = cov_data[3:]
     if ct != 0:
         slope = ctv / ct
         intercept = mu_v - slope * mu_t
+        print('ct!=0: ' , intercept, " = ", mu_v, "-", slope, "*", mu_t)
         error = cv - ctv ** 2 / ct
     else:
         slope, intercept, error = 0.0, mu_v, cv
+        print('ct=0: ' , intercept, " = ", mu_v)
 
     return ((intercept, slope), error)
 
