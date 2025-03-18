@@ -1,5 +1,5 @@
 // piecewise.test.ts
-import { findIntersection, piecewise, FittedSegment, fetchAndSaveChart, adjustSegmentsToSnapIntersections } from "./piecewise.js"; // note the .js extension for ESM
+import { findIntersection, piecewise, FittedSegment, fetchAndSaveChart, adjustSegmentsToSnapIntersections } from "../src/piecewise.js"; // note the .js extension for ESM
 import seedrandom from "seedrandom";
 
 

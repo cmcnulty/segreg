@@ -1,3 +1,11 @@
+Copied from setup.py:
+  url='http://github.com/datadog/piecewise',
+  author='Stephen Kappel',
+  author_email='stephen@datadoghq.com',
+  license='BSD-3-Clause',
+
+--
+
 BSD 3-Clause License
 
 Copyright (c) 2017, Datadog, Inc.
