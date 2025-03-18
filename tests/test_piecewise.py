@@ -6,9 +6,92 @@ import numpy as np
 
 # prj
 from piecewise import piecewise
+from piecewise.plotter import piecewise_plot
 
 
 class TestPiecewise(unittest.TestCase):
+
+    def test_wrs_data(self):
+
+        t = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+        v = [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            11,
+            11,
+            11,
+            11,
+            11
+        ]
+
+        '''
+        t = np.arange(10)
+        v = np.array(
+            [2*i for i in range(5)] +
+            [10-i for i in range(5, 10)]
+        ) + np.random.normal(0, 1, 10)
+        '''
+        # piecewise_plot(t, v, .001)
+        model = piecewise(t, v)
+        np.testing.assert_equal(len(model.segments), 2)
+        seg = model.segments[0]
+        np.testing.assert_equal(seg.start_t, 1)
+        np.testing.assert_equal(seg.end_t, 12)
+        np.testing.assert_equal(model.segments[1].start_t, 12)
+        np.testing.assert_equal(model.segments[1].end_t, 16)
+        # np.testing.assert_almost_equal(seg.coeffs[0], intercept, decimal=0)
+        # np.testing.assert_almost_equal(seg.coeffs[1], slope, decimal=0)
+
+
+    def test_wrs_data(self):
+
+        t = [55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70]
+        v = [
+            4672.92, # 55
+            5037.72, # 56
+            5402.4, # 57
+            5675.88, # 58
+            5957.04, # 59
+            6230.64, # 60
+            6504.12, # 61
+            6777.72, # 62
+            7051.20, # 63
+            7324.80, # 64
+            7598.28, # 65 first point of second segment, last point of first segment
+            7598.28, # 66
+            7598.28, # 67
+            7598.28, # 68
+            7598.28, # 69
+            7598.28 # 70
+        ]
+
+        '''
+        t = np.arange(10)
+        v = np.array(
+            [2*i for i in range(5)] +
+            [10-i for i in range(5, 10)]
+        ) + np.random.normal(0, 1, 10)
+        '''
+        # piecewise_plot(t, v, .001)
+        model = piecewise(t, v, .01)
+        np.testing.assert_equal(len(model.segments), 2)
+        seg = model.segments[0]
+        np.testing.assert_equal(seg.start_t, 55)
+        np.testing.assert_equal(seg.end_t, 66)
+        np.testing.assert_equal(model.segments[1].start_t, 66)
+        np.testing.assert_equal(model.segments[1].end_t, 70)
+        # np.testing.assert_almost_equal(seg.coeffs[0], intercept, decimal=0)
+        # np.testing.assert_almost_equal(seg.coeffs[1], slope, decimal=0)
+
 
     def test_single_line(self):
         """ When the data follows a single linear path with Gaussian noise, then

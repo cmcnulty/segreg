@@ -8,3 +8,5 @@
 build/
 dist/
 piecewise.egg-info/
+
+node_modules

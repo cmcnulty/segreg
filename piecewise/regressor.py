@@ -1,6 +1,7 @@
 # std
 from collections import namedtuple
 import heapq
+from pprint import pprint
 
 # 3p
 import numpy as np
@@ -10,7 +11,6 @@ import numpy as np
 
 
 def piecewise(t, v, min_stop_frac=0.03):
-    print('piecewise(', 't:', t, 'v:', v, 'min_stop_frac:', min_stop_frac, ')')
     """ Fits a piecewise (aka "segmented") regression.
     Params:
         t (listlike of ints or floats): independent/predictor variable values
@@ -68,7 +68,6 @@ def piecewise(t, v, min_stop_frac=0.03):
         neighbors = seg_tracker.get_neighbors(next_merge.new_seg)
         for neighbor in neighbors:
             left_seg, right_seg = sorted([next_merge.new_seg, neighbor])
-            print('making merge', t)
             heapq.heappush(merges, _make_merge(t, v, left_seg, right_seg))
 
     if biggest_cost_increase < min_stop_frac*cum_cost:
@@ -79,59 +78,12 @@ def piecewise(t, v, min_stop_frac=0.03):
     for merge in reversed(merges_since_best):
         seg_tracker.unapply_merge(merge)
 
+    pprint(seg_tracker.segments)
 
-    '''
-    fitted_segments = [
-        FittedSegment(t[seg.start_index], t[seg.end_index - 1], seg.coeffs)
-        for seg in seg_tracker.segments
-    ]
-
-
-    fitted_segments = []
-    segments = seg_tracker.segments
-    for i, seg in enumerate(segments):
-        # For the first segment, the start is just its own start.
-        if i == 0:
-            display_start = t[seg.start_index]
-        else:
-            # For subsequent segments, force the start to be the same as the previous segment's end
-            # (which we already computed and stored).
-            display_start = fitted_segments[-1].end_t
-
-        # For interior segments, use the next segment's start as the end boundary.
-        if i < len(segments) - 1:
-            display_end = t[segments[i+1].start_index]
-        else:
-            # For the last segment, use the last point that was actually used in the segment.
-            display_end = t[seg.end_index - 1]
-
-        fitted_segments.append(FittedSegment(display_start, display_end, seg.coeffs))
-
-
-    '''
     fitted_segments = [
         FittedSegment(t[seg.start_index], t[min(seg.end_index, len(t)-1)], seg.coeffs)
         for seg in seg_tracker.segments
     ]
-    '''
-
-    # This just fiddles with the segments after they're already merged.
-    fitted_segments = []
-    prev_end = None
-    segments = seg_tracker.segments
-    for i, seg in enumerate(segments):
-        # For the first segment, use its actual start.
-        # For subsequent segments, override the start with the previous segment's end.
-        start_t = t[seg.start_index] if i == 0 else prev_end
-        # Use the last point in the segment as its end.
-        end_t = t[seg.end_index - 1] if seg.end_index > seg.start_index else t[seg.start_index]
-        fitted_segments.append(FittedSegment(start_t, end_t, seg.coeffs))
-        prev_end = end_t
-    '''
-
-    print('fitted_segments length: ', len(fitted_segments))
-    print('fitted_segments: ', fitted_segments)
-
     return FittedModel(fitted_segments)
 
 
@@ -513,22 +465,16 @@ def _fit_line(t, v, start_index, end_index, cov_data):
     """ Fits and OLS regression for the set of t and v values in the given index
     range. Returns (coefficients of line, sum of squared error).
     """
-    # print('t: ', t)
-    # print('v: ', v)
-    # print('start_index:', start_index)
-    # print('end_index: ', end_index)
-    # print('cov_data:', cov_data)
+
     # based on scipy.stats.linregress
     mu_t, mu_v = cov_data[1:3] / cov_data[0]
     ct, cv, ctv = cov_data[3:]
     if ct != 0:
         slope = ctv / ct
         intercept = mu_v - slope * mu_t
-        print('ct!=0: ' , intercept, " = ", mu_v, "-", slope, "*", mu_t)
         error = cv - ctv ** 2 / ct
     else:
         slope, intercept, error = 0.0, mu_v, cv
-        print('ct=0: ' , intercept, " = ", mu_v)
 
     return ((intercept, slope), error)
 
