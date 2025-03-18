@@ -30,8 +30,6 @@ describe("piecewise regression", () => {
 
     const model = piecewise(t, v);
 
-    console.log(model.segments);
-
     // Expect two segments
     expect(model.segments.length).toBe(2);
 
@@ -248,18 +246,12 @@ describe("Test segment intersection", () => {
       const v_data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 10, 10];
 
       const model = piecewise(t_data, v_data, 0.01);
-      console.log("Fitted Segments:");
-      model.segments.forEach((seg, i) =>
-        console.log(`Segment ${i + 1}: [${seg.start_t}, ${seg.end_t}], coeffs: ${JSON.stringify(seg.coeffs)}`)
-      );
 
       // Check for intersection between the first two segments (if there are at least two).
       if (model.segments.length >= 2) {
 
         const intersection = findIntersection(model.segments[0], model.segments[1], .15);
         const mergedSegments = adjustSegmentsToSnapIntersections(model.segments, .15);
-
-        // await fetchAndSaveChart([...model.segments, ...mergedSegments], 'output1.png');
 
         expect(mergedSegments.length).toBe(2);
         expect(mergedSegments[0].end_t).toBe(10);
@@ -284,10 +276,6 @@ describe("Test segment intersection", () => {
       }
     ] as FittedSegment[];
     const intersection = findIntersection(segments[0], segments[1]);
-
-
-    await fetchAndSaveChart(segments, 'output2.png');
-
 
     expect(intersection?.intersects).toBe(true);
     expect(intersection?.point.t).toBeCloseTo(64.87678);

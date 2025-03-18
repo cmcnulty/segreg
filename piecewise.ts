@@ -753,7 +753,6 @@ export function findIntersection(
 
   // Calculate snap radius as percentage of diagonal
   const snapRadius = diagonalLength * snapRadiusRatio;
-  console.log(`Snap radius: ${snapRadius}`);
 
   // Handle parallel lines (identical slopes)
   if (segment1.coeffs.slope === segment2.coeffs.slope) {
@@ -831,8 +830,6 @@ export function findIntersection(
   // Get the minimum distance for each segment
   const dist1 = Math.min(dist1Start, dist1End);
   const dist2 = Math.min(dist2Start, dist2End);
-
-  console.log(`Distances: ${dist1}, ${dist2}`);
 
   // If both closest points are within the snap radius, consider it an intersection
   if (dist1 <= snapRadius && dist2 <= snapRadius) {
@@ -1034,7 +1031,6 @@ export async function fetchAndSaveChart(segments: FittedSegment[], filename: str
     const buffer = Buffer.from(arrayBuffer);
 
     await fsPromises.writeFile(filename, buffer);
-    console.log(`Chart saved as: ${filename}`);
   } catch (error) {
     console.error('Error fetching and saving chart:', error);
     throw error;
