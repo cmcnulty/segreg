@@ -1,9 +1,9 @@
 {
     "type": "module",
     "scripts": {
+        "build": "tsc",
         "test": "NODE_OPTIONS='--experimental-vm-modules' jest"
     },
-    "dependencies": {},
     "devDependencies": {
         "ts-node": "^10.x",
         "typescript": "^4.x",
@@ -12,5 +12,30 @@
         "node-fetch": "^3.3.2",
         "seedrandom": "^3.0.5",
         "ts-jest": "^29.2.5"
-    }
+    },
+    "name": "piecewise",
+    "version": "0.1.0",
+    "description": "Piecewise regression in JavaScript",
+    "main": "dist/piecewise.js",
+    "directories": {
+        "test": "tests"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cmcnulty/segreg.git"
+    },
+    "keywords": [
+        "piecewise",
+        "segment",
+        "regression"
+    ],
+    "author": "Charles McNulty",
+    "contibutors": [
+        "Stephen Kappel"
+    ],
+    "license": "BSD-3-Clause",
+    "bugs": {
+        "url": "https://github.com/cmcnulty/segreg/issues"
+    },
+    "homepage": "https://github.com/cmcnulty/segreg#readme"
 }
