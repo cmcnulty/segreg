@@ -1,5 +1,5 @@
 // piecewise.test.ts
-import { findIntersection, piecewise, FittedSegment, fetchAndSaveChart, adjustSegmentsToSnapIntersections } from "../src/piecewise.js"; // note the .js extension for ESM
+import { findIntersection, piecewise, FittedSegment, adjustSegmentsToSnapIntersections } from "../src/piecewise.js"; // note the .js extension for ESM
 import seedrandom from "seedrandom";
 
 
@@ -257,8 +257,8 @@ describe("Test segment intersection", () => {
         expect(mergedSegments[0].end_t).toBe(10);
         expect(mergedSegments[1].start_t).toBe(10);
         expect(intersection?.intersects).toBe(true);
-        expect(intersection?.point.t).toBe(10);
-        expect(intersection?.point.y).toBe(10);
+        expect(intersection?.point?.t).toBe(10);
+        expect(intersection?.point?.y).toBe(10);
       }
   });
 
@@ -278,8 +278,8 @@ describe("Test segment intersection", () => {
     const intersection = findIntersection(segments[0], segments[1]);
 
     expect(intersection?.intersects).toBe(true);
-    expect(intersection?.point.t).toBeCloseTo(64.87678);
-    expect(intersection?.point.y).toBeCloseTo(7598.28);
+    expect(intersection?.point?.t).toBeCloseTo(64.87678);
+    expect(intersection?.point?.y).toBeCloseTo(7598.28);
   });
 });
 
