@@ -1,6 +1,6 @@
 {
     "name": "segreg",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "description": "Piecewise regression in JavaScript",
     "type": "module",
     "scripts": {
