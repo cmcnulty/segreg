@@ -891,7 +891,7 @@ export function adjustSegmentsToSnapIntersections(
 
     const intersection = findIntersection(seg1, seg2, toleranceFactor);
 
-    if (intersection) {
+    if (intersection?.intersects) {
       const { t, y } = intersection.point;
 
       // Snap endpoints to intersection point
