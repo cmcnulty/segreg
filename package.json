@@ -1,4 +1,7 @@
 {
+    "name": "segreg",
+    "version": "0.2.0",
+    "description": "Piecewise regression in JavaScript",
     "type": "module",
     "scripts": {
         "build": "tsc",
@@ -13,9 +16,6 @@
         "seedrandom": "^3.0.5",
         "ts-jest": "^29.2.5"
     },
-    "name": "piecewise",
-    "version": "0.1.0",
-    "description": "Piecewise regression in JavaScript",
     "main": "dist/piecewise.js",
     "directories": {
         "test": "tests"
