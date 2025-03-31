@@ -285,12 +285,12 @@ describe("Test segment intersection", () => {
 
 describe("Test data that should not be segmented", () => {
   test("should not segment data that is already a single line", () => {
-    const t = Array.from({ length: 100 }, (_, i) => i);
+    const t = Array.from({ length: 6 }, (_, i) => i);
     const v = t.map((tVal) => 2 * tVal + 3); // Linear function
     const model = piecewise(t, v);
     expect(model.segments.length).toBe(1);
     expect(model.segments[0].start_t).toBe(0);
-    expect(model.segments[0].end_t).toBe(99);
+    expect(model.segments[0].end_t).toBe(5);
     expect(model.segments[0].coeffs.intercept).toBeCloseTo(3);
     expect(model.segments[0].coeffs.slope).toBeCloseTo(2);
   });

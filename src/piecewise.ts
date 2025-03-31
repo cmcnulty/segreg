@@ -646,7 +646,7 @@ export function piecewise(t: number[], v: number[], min_stop_frac: number = 0.03
   }
 
   // Handle the edge case
-  if (biggestCostIncrease < min_stop_frac * cumCost) {
+  if (biggestCostIncrease <= min_stop_frac * cumCost) {
     mergesSinceBest = [];
   }
 
