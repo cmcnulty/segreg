@@ -22,9 +22,6 @@ export class FittedSegment {
     this.coeffs = coeffs;
   }
 
-  predict(t_new: number): number {
-    return this.coeffs.slope * t_new + this.coeffs.intercept;
-  }
 }
 
 class FittedModel {
@@ -32,27 +29,6 @@ class FittedModel {
 
   constructor(segments: FittedSegment[]) {
     this.segments = segments;
-  }
-
-  predict(t_new: number | number[]): number | number[] {
-    if (typeof t_new === "number") {
-      // Handle scalar case
-      if (this.segments.length === 1) {
-        return this.segments[0].predict(t_new);
-      }
-
-      // Find the appropriate segment
-      for (let i = 0; i < this.segments.length; i++) {
-        if (i < this.segments.length - 1 && t_new <= this.segments[i].end_t) {
-          return this.segments[i].predict(t_new);
-        }
-      }
-      // Default to last segment if beyond range
-      return this.segments[this.segments.length - 1].predict(t_new);
-    } else {
-      // Handle array case
-      return t_new.map(t => this.predict(t) as number);
-    }
   }
 }
 
@@ -608,7 +584,6 @@ class MinHeap<T> {
     this.heap[index] = item;
   }
 }
-
 
 /**
  * Main piecewise regression function.
