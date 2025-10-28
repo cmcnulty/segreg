@@ -67,7 +67,7 @@ describe("Single Line Test", () => {
    * Generate a standard normal random number using the Box–Muller transform.
    * We assume that rng() returns a uniform random number in (0,1).
    */
-  function randomNormal(rng: seedrandom.prng): number {
+  function randomNormal(rng: seedrandom.PRNG): number {
     let u = 0, v = 0;
     // Avoid u or v being 0.
     do { u = rng(); } while (u === 0);
@@ -132,6 +132,25 @@ describe("Test Five Segments", () => {
     expect(model.segments[4].start_t).toBe(1980);
   });
 });
+
+
+// Test 1: Five Segments
+describe("Test Wavy Line", () => {
+  test("should find five segments with proper breakpoints and slopes of 1", () => {
+    // Generate data: t from 1900 to 1999 and v = t % 20.
+    const t = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+    const v = [39,43,54,57,62,17,18,46,50,54,58,65,17,16,56,60,65,71,75,19,18,63,63,66,70,72,18,18,60,71,77];
+
+    // Fit the piecewise regression.
+    // const threshold = .001; // Adjusted threshold for more sensitivity
+    const model = piecewise(t, v);
+
+    // Expect five segments.
+    expect(model.segments.length).toBe(5);
+
+  });
+});
+
 
 // Test 2: Messy t-values
 describe("Test Messy t-values", () => {

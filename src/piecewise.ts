@@ -620,9 +620,10 @@ export function piecewise(t: number[], v: number[], min_stop_frac: number = 0.03
     if (!nextMerge) break;
 
     // Update cost tracking
+    const prevBiggest = biggestCostIncrease;
     cumCost += nextMerge.cost;
-    const costIncrease = nextMerge.cost;
-    biggestCostIncrease = Math.max(biggestCostIncrease, costIncrease);
+    const costIncrease = nextMerge.cost - prevBiggest;
+    biggestCostIncrease = Math.max(prevBiggest, costIncrease);
 
     // Determine if this is the new best state
     if (biggestCostIncrease < min_stop_frac * cumCost ||
