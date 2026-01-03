@@ -1,72 +1,105 @@
 # piecewise
 
-This repo accompanies [Piecewise regression: when one line simply isn’t enough](https://www.datadoghq.com/blog/engineering/piecewise-regression/), a blog post about Datadog's approach to piecewise regression. The code included here is intended to be minimal and readable; this is not a Swiss Army knife to solve all variations of piecewise regression problems.
+This repo accompanies [Piecewise regression: when one line simply isn't enough](https://www.datadoghq.com/blog/engineering/piecewise-regression/), a blog post about Datadog's approach to piecewise regression. The code included here is intended to be minimal and readable; this is not a Swiss Army knife to solve all variations of piecewise regression problems.
+
+This is a TypeScript/JavaScript implementation of the piecewise regression algorithm.
 
 ## Installation & dependencies
 
-This package was written to work with both Python 2 and Python 3.
+```bash
+npm install segreg
+```
 
-To install this package using setup tools, clone this repo and run `python setup.py install` from within the `piecewise` root directory.
+Or clone this repo and build from source:
 
-The package's core `piecewise()` function for regression requires only `numpy`. The use of `piecewise_plot()` for plotting depends also on `matplotlib`.
+```bash
+git clone https://github.com/cmcnulty/segreg.git
+cd segreg
+npm install
+npm run build
+```
+
+The package has no runtime dependencies. Development dependencies include TypeScript, Jest, and ts-jest for testing.
 
 ## Usage
 
-Start by preparing your data as list-likes of timestamps (independent variables) and values (dependent variables).
+Start by preparing your data as arrays of timestamps (independent variables) and values (dependent variables).
 
-```
-import numpy as np
+```typescript
+import { piecewise } from 'segreg';
 
-t = np.arange(10)
-v = np.array(
-    [2*i for i in range(5)] +
-    [10-i for i in range(5, 10)]
-) + np.random.normal(0, 1, 10)
-```
-
-Now, you're ready to import the `piecewise()` function and fit a piecewise linear regression.
-
-```
-from piecewise import piecewise
-
-model = piecewise(t, v)
+// Generate sample data
+const t = Array.from({ length: 10 }, (_, i) => i);
+const v = [
+  ...Array.from({ length: 5 }, (_, i) => 2 * i),
+  ...Array.from({ length: 5 }, (_, i) => 10 - i)
+].map(val => val + (Math.random() - 0.5) * 2); // Add some noise
 ```
 
-`model` if a `FittedModel` object. If you are at a shell, you can print the object to see the fitted segments domains and regression coefficients.
+Now, you're ready to fit a piecewise linear regression.
 
-```
->>> model
-FittedModel with segments:
-* FittedSegment(start_t=0, end_t=5, coeffs=(-0.8576123780622642, 2.224791099812951))
-* FittedSegment(start_t=5, end_t=9, coeffs=(10.975487672814133, -1.0722348284390741))
+```typescript
+const model = piecewise(t, v);
 ```
 
-Alternatively, you can use the `FittedModel`'s `segments` attribute to get at values.
+`model` is a `FittedModel` object. You can inspect the fitted segments to see their domains and regression coefficients.
 
-```
->>> len(model.segments)
-2
->>> model.segments[0].coeffs
-(-0.8576123780622642, 2.224791099812951)
-```
-
-If you want to interpolate or extrapolate, you can use the `FittedModel`'s `predict()` function.
-
-```
->>> model.predict(t_new=[3.5, 100])
-array([  6.92915647, -96.24799517])
+```typescript
+console.log(model.segments.length); // Number of segments
+console.log(model.segments[0]);
+// FittedSegment {
+//   start_t: 0,
+//   end_t: 5,
+//   coeffs: { intercept: -0.857, slope: 2.224 }
+// }
 ```
 
-To see a plot, instead of getting a `FittedModel`, use `piecewise_plot()`.  You may also use an existing `FittedModel`.
+You can access the coefficients and domain information from each segment:
 
-```
-from piecewise import piecewise_plot
-
-# using an existing FittedModel
-piecewise_plot(t, v, model=model)
-
-# fitting a model on the fly
-piecewise_plot(t, v)
+```typescript
+const segment = model.segments[0];
+console.log(segment.start_t);          // Starting t value
+console.log(segment.end_t);            // Ending t value
+console.log(segment.coeffs.intercept); // y-intercept
+console.log(segment.coeffs.slope);     // Slope
 ```
 
-<img src="/img/example_regression.png" width="400px">
+## Advanced Features
+
+### Intersection Detection
+
+The library includes utilities for detecting and snapping segment intersections:
+
+```typescript
+import { findIntersection, adjustSegmentsToSnapIntersections } from 'segreg';
+
+const model = piecewise(t, v);
+
+// Find intersection between consecutive segments
+if (model.segments.length >= 2) {
+  const intersection = findIntersection(
+    model.segments[0],
+    model.segments[1],
+    0.05 // snap radius ratio (5% of bounding box diagonal)
+  );
+
+  if (intersection.intersects) {
+    console.log(`Intersection at t=${intersection.point.t}, y=${intersection.point.y}`);
+  }
+}
+
+// Adjust all segments to snap to their intersections
+const adjustedSegments = adjustSegmentsToSnapIntersections(model.segments, 0.05);
+```
+
+### Custom Stopping Criteria
+
+You can adjust the `min_stop_frac` parameter to control when the algorithm stops merging segments:
+
+```typescript
+// More aggressive merging (fewer segments)
+const model1 = piecewise(t, v, 0.05);
+
+// Less aggressive merging (more segments)
+const model2 = piecewise(t, v, 0.01);
+```
